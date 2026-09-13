@@ -6,7 +6,8 @@ import { CacheModule } from './cache/cache.module';
 import { CrawlerModule } from './crawler/crawler.module';
 import { FiltersModule } from './filters/filters.module';
 import { UsageLogsModule } from './usage-logs/usage-logs.module';
-
+import { ConfigModule } from '@nestjs/config';
+import configuration from './config/configuration';
 @Module({
   imports: [
     DatabaseModule,
@@ -14,6 +15,11 @@ import { UsageLogsModule } from './usage-logs/usage-logs.module';
     CrawlerModule,
     FiltersModule,
     UsageLogsModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [configuration],
+      envFilePath: '.env',
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
