@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
-import { CrawlerService } from './crawler.service';
+
 import { CrawlerController } from './crawler.controller';
+import { CrawlerService } from './crawler.service';
+import { HnClient } from './hn.client';
+import { HnParser } from './hn.parser';
 
 @Module({
-  providers: [CrawlerService],
   controllers: [CrawlerController],
+  providers: [CrawlerService, HnClient, HnParser],
+  exports: [CrawlerService],
 })
 export class CrawlerModule {}
