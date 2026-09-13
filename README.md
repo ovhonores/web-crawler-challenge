@@ -68,6 +68,105 @@ $ npm run test:cov
 
 ## Design decisions
 
+### 1. Feature-based modules (not layer-based)
+
+Modules are organized by **feature**, not by technical layer.
+
+**Why:**
+- NestJS is built around modules, not layers. Each module encapsulates its own controller, service, DTOs, and tests.
+- Feature-based organization improves **cohesion**: everything related to crawling lives in `crawler/`.
+- It **scales** better: adding a new feature means adding a new folder, not touching five existing ones.
+- It follows the **official NestJS convention** and industry practice (Angular, DDD, Clean Architecture).
+
+**Trade-off:** a developer unfamiliar with the codebase must know that `*.controller.ts` files define HTTP routes. This is mitigated by the endpoint table below and by NestJS's own conventions.
+
+---
+
+### 2. `database/` — Infrastructure module
+
+`database/` does not expose HTTP endpoints. It configures the persistence layer (TypeORM + SQLite) and provides repository implementations.
+
+**Why:**
+- **Separation of concerns:** `usage-logs/` should not know how the database is configured, only that a repository exists.
+- **Testability:** features can be tested with a mocked repository.
+- **Flexibility:** switching from SQLite to MongoDB means changing `database/` only.
+
+**Pattern:** Repository Pattern + Dependency Inversion. `UsageLogsService` depends on the `UsageLogRepository` interface, not on TypeORM.
+
+---
+
+### 3. `cache/` — Cross-cutting concern
+
+`cache/` configures Redis via `@nestjs/cache-manager` and exposes it globally.
+
+
+**Why Redis at all:**
+- The crawler hits an external site. Caching the result for 5 minutes avoids unnecessary requests and improves response time.
+- The assignment mentions "track crawler behavior" — responsible crawling includes not hammering the source.
+
+---
+
+### 4. `crawler/` — Fetch and parse Hacker News
+
+Encapsulates two distinct responsibilities
+
+
+---
+
+### 5. `filters/` — Business logic
+
+Applies the two filtering operations required by the assignment:
+- More than 5 words → ordered by comments.
+- Fewer than or equal to 5 words → ordered by points.
+
+**Dependencies:** `filters/` consumes `CrawlerService` (to get entries) and `UsageLogsService` (to log usage).
+
+---
+
+### 6. `usage-logs/` — Persist API usage
+
+Persists every API interaction: timestamp, applied filter, and additional metadata.
+
+**Why:**
+- The assignment explicitly requires storing usage data.
+- It is a **cross-cutting concern**: `filters/` logs usage, and future features might too.
+- It follows the Repository Pattern: `UsageLogsService` depends on `UsageLogRepository`, not on TypeORM directly.
+
+**Fields stored:**
+- `timestamp` (required by the assignment)
+- `filter` (required by the assignment)
+- `entriesReturned`, `executionMs`, `userAgent`, `ip` (extra fields to track crawler behavior)
+
+
+---
+
+### 8. `config/` — Utility, not a module
+
+`config/` contains `configuration.ts`, a plain function that exports environment-based configuration.
+
+**Why:**
+- Configuration is **not a feature**; it is a utility consumed by `ConfigModule.forRoot()`.
+- It does not need a controller, service, or module of its own.
+
+---
+
+## Module Summary
+
+| Module | Type | Responsibility | Exposes HTTP? |
+|--------|------|----------------|---------------|
+| `crawler` | Feature | Fetch and parse HN | Yes (optional) |
+| `filters` | Feature | Apply filters and sorting | Yes |
+| `usage-logs` | Feature | Persist usage data | Yes |
+| `database` | Infrastructure | Configure persistence | No |
+| `cache` | Infrastructure | Configure Redis | No |
+| `config` | Utility | Centralize env config | No |
+
+---
+
+## Testing
+
+
+
 ### NestJS and TypeScript
 
 NestJS was selected because it provides a structured architecture for
