@@ -10,16 +10,16 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from './config/configuration';
 @Module({
   imports: [
-    DatabaseModule,
-    CacheModule,
-    CrawlerModule,
-    FiltersModule,
-    UsageLogsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
       envFilePath: '.env',
     }),
+    DatabaseModule,
+    CacheModule,
+    CrawlerModule,
+    FiltersModule,
+    UsageLogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
