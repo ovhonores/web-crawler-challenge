@@ -93,6 +93,34 @@ Modules are organized by **feature**, not by technical layer.
 
 **Pattern:** Repository Pattern + Dependency Inversion. `UsageLogsService` depends on the `UsageLogRepository` interface, not on TypeORM.
 
+**Structure:**
+````text
+src/database/
+├── entities/
+│ └── usage-log.interface.ts # Domain contract (no ORM dependency)
+├── repositories/
+│ ├──── usage-log.repository.ts # Repository interface + injection token
+│ └── sqlite/
+│ ├──── usage-log.entity.ts # TypeORM entity (@Entity)
+│ └──── sqlite-usage-log.repository.ts # SQLite implementation
+│ └──── sqlite-usage-log.repository.spec.ts #(npm run test -- sqlite-usage-log.repository)
+└── database.module.ts # Dynamic module with provider binding
+
+````
+
+**Decisions made in this module:**
+- **SQLite over MongoDB:** zero configuration, portable, single file at `./data/hn-crawler.sqlite`. No server or container required.
+- **Repository Pattern:** `UsageLogsService` depends on `UsageLogRepository` (interface), not on TypeORM. This allows swapping SQLite for MongoDB by implementing a new class and changing one provider in `DatabaseModule`.
+- **Injection token (`USAGE_LOG_REPOSITORY`):** a `Symbol` used to inject the repository implementation, keeping the service decoupled from the concrete class.
+- **`synchronize: true`:** TypeORM creates tables automatically from entities. Acceptable for a challenge; in production, migrations would be used.
+- **Centralized config:** the SQLite path is read from `ConfigService` (`database.sqlitePath`), which comes from `.env` (`DB_PATH`). No hardcoded paths.
+- **`data/.gitkeep`:** the `data/` folder is committed so the SQLite file has a place to live, but `*.sqlite` files are gitignored.
+
+**How to switch to MongoDB:**
+1. Create `MongoUsageLogRepository` implementing `UsageLogRepository`.
+2. Add the Mongoose branch in `DatabaseModule`.
+3. Set `DB_DRIVER=mongodb` in `.env`.
+4. `UsageLogsService` remains untouched.
 ---
 
 ### 3. `cache/` — Cross-cutting concern
