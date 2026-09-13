@@ -247,6 +247,23 @@ Usage data is persisted separately from the scraped entries using SQLite.
 This includes information such as the request timestamp, applied filter,
 number of entries returned, and request duration.
 
+### Dependency Security
+
+Transitive dependencies pulled in by the NestJS scaffold contained known vulnerabilities
+reported by `npm audit` (moderate to high severity).
+
+**Decision:** Instead of running `npm audit fix --force` (which would force breaking major-version
+upgrades), `overrides` were added to `package.json` to pin patched versions within the same
+major range:
+
+```json
+"overrides": {
+  "path-to-regexp": "^8.0.0",
+  "uuid": "^11.1.1",
+  "multer": "^2.3.0"
+}
+```
+
 ## Author
 
 Terry Honores
