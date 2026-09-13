@@ -138,8 +138,34 @@ src/database/
 
 Encapsulates two distinct responsibilities
 
+The `crawler/` module fetches and parses the top 30 entries from
+[Hacker News](https://news.ycombinator.com/).
 
----
+#### Responsibilities
+
+| File | Responsibility |
+|------|----------------|
+| `entry.parser.ts` | Extract `number`, `title`, `points`, and `comments` from Hacker News HTML using Cheerio |
+
+| `hn.client.ts` | HTTP GET to HN (axios, 10s timeout, custom User-Agent) |
+| `hn.parser.ts` | Call  EntryParser |
+| `hn-selectors.ts` | Centralized CSS selectors |
+| `crawler.service.ts` | Orchestrate client + parser |
+
+#### Domain type
+
+```typescript
+export const HN_SELECTORS = {
+  entry: 'tr.athing',
+  rank: 'span.rank',
+  title: 'span.titleline > a',
+  subtext: 'td.subtext',
+  points: 'span.score',
+  comments: 'a[href^="item?id="]',
+} as const;
+```
+
+
 
 ### 5. `filters/` — Business logic
 
