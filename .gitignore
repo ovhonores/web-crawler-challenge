@@ -21,3 +21,12 @@ coverage/
 *.log
 data/*.sqlite
 data/*.sqlite-journal
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env*.local
+
+*.tsbuildinfo
