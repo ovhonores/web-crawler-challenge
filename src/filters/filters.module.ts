@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
-import { FiltersService } from './filters.service';
+
 import { FiltersController } from './filters.controller';
+import { FiltersService } from './filters.service';
+import { CrawlerModule } from '../crawler/crawler.module';
+import { UsageLogsModule } from '../usage-logs/usage-logs.module';
 
 @Module({
-  providers: [FiltersService],
+  imports: [CrawlerModule, UsageLogsModule],
   controllers: [FiltersController],
+  providers: [FiltersService],
 })
 export class FiltersModule {}
