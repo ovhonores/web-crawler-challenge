@@ -42,7 +42,6 @@ export class FiltersService {
       });
       return filtered;
     } catch (error) {
-      console.log('Error in getFilteredEntries:', error);
       const executionMs = Date.now() - startedAt;
       await this.usageLogs.log({
         filter: this.serializeQuery(query),
