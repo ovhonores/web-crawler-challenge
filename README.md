@@ -274,10 +274,28 @@ Inspect logs with GET /usage.
 | `database` | Infrastructure | Configure persistence | No |
 | `cache` | Infrastructure | Configure Redis | No |
 | `config` | Utility | Centralize env config | No |
-
+| `common` | Utility | Shared pure functions (e.g. `withTimeout`) | No |
 ---
 
 ## Testing
+
+The project uses **Jest** for both unit and end-to-end tests.
+
+### Run tests
+
+```bash
+# Unit tests
+npm run test
+
+# Unit tests in watch mode
+npm run test:watch
+
+# Unit tests with coverage
+npm run test:cov
+
+# End-to-end tests
+npm run test:e2e
+```
 
 
 
@@ -350,6 +368,46 @@ major range:
 }
 ```
 
+## API Documentation (Swagger)
+
+The API is documented with **Swagger (OpenAPI)** and available at:
+http://localhost:3000/api
+
+### What you can do
+
+- Browse all endpoints with their parameters and response schemas.
+- Test any endpoint directly from the browser using the **"Try it out"** button.
+- See examples for each query parameter.
+
+### Endpoints documented
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/entries` | Get filtered entries from Hacker News |
+| `GET` | `/usage` | Get recent usage logs |
+
+### Query parameters for `GET /entries`
+
+| Parameter | Values | Default | Description |
+|-----------|--------|---------|-------------|
+| `words` | integer ≥ 0 | `5` | Number of words to compare |
+| `operator` | `gt`, `gte`, `lt`, `lte`, `eq` | `gt` | Comparison operator |
+| `sortBy` | `points`, `comments`, `number` | `comments` | Field to sort by |
+| `order` | `asc`, `desc` | `desc` | Sort direction |
+
+### Example
+
+Open `http://localhost:3000/api`, click on `GET /entries`, press **"Try it out"**,
+and use:
+
+```json
+{
+  "words": 5,
+  "operator": "gt",
+  "sortBy": "comments",
+  "order": "desc"
+}
+```
 ## Author
 
 Terry Honores
