@@ -8,6 +8,8 @@ describe('HN Crawler (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+    // SQLite in memory database for testing
+    process.env.DB_PATH = ':memory:';
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
