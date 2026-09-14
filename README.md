@@ -132,6 +132,26 @@ src/database/
 - The crawler hits an external site. Caching the result for 5 minutes avoids unnecessary requests and improves response time.
 - The assignment mentions "track crawler behavior" — responsible crawling includes not hammering the source.
 
+
+### How it works
+
+1. `CrawlerService.getTopEntries()` checks Redis for the key `hn:top:30`.
+2. On cache hit, returns the cached entries.
+3. On cache miss, fetches from HN, parses, and stores the result in Redis.
+
+### Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `REDIS_HOST` | `localhost` | Redis host |
+| `REDIS_PORT` | `6379` | Redis port |
+| `CACHE_TTL` | `300` | Cache TTL in seconds |
+
+### Running Redis
+
+```bash
+docker compose --profile local up -d
+```
 ---
 
 ### 4. `crawler/` — Fetch and parse Hacker News
