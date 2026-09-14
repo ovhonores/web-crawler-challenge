@@ -5,12 +5,14 @@ import { CrawlerService } from './crawler.service';
 import { HnClient } from './hn.client';
 import { HnParser } from './hn.parser';
 import type { Entry } from './interfaces/entry.interface';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 describe('CrawlerService', () => {
   let service: CrawlerService;
   let clientMock: { fetchHomepage: jest.Mock };
   let parserMock: { parseEntries: jest.Mock };
   let configMock: { get: jest.Mock };
+  let cacheMock: { get: jest.Mock; set: jest.Mock };
 
   const mockEntries: Entry[] = [
     { number: 1, title: 'Test entry', points: 100, comments: 10 },
@@ -31,12 +33,17 @@ describe('CrawlerService', () => {
       }),
     };
 
+    cacheMock = {
+      get: jest.fn().mockResolvedValue(undefined),
+      set: jest.fn().mockResolvedValue(undefined),
+    };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CrawlerService,
         { provide: HnClient, useValue: clientMock },
         { provide: HnParser, useValue: parserMock },
         { provide: ConfigService, useValue: configMock },
+        { provide: CACHE_MANAGER, useValue: cacheMock },
       ],
     }).compile();
 
@@ -62,13 +69,13 @@ describe('CrawlerService', () => {
         return undefined;
       });
 
-      // Recrear el service para que tome el nuevo valor
       const module = await Test.createTestingModule({
         providers: [
           CrawlerService,
           { provide: HnClient, useValue: clientMock },
           { provide: HnParser, useValue: parserMock },
           { provide: ConfigService, useValue: configMock },
+          { provide: CACHE_MANAGER, useValue: cacheMock }, // ← añadir esto
         ],
       }).compile();
 
@@ -76,6 +83,28 @@ describe('CrawlerService', () => {
       await newService.getTopEntries();
 
       expect(parserMock.parseEntries).toHaveBeenCalledWith('<html></html>', 10);
+    });
+  });
+  describe('getTopEntries', () => {
+    it('should return cached entries on cache hit', async () => {
+      cacheMock.get.mockResolvedValue(mockEntries);
+
+      const result = await service.getTopEntries();
+
+      expect(result).toEqual(mockEntries);
+      expect(clientMock.fetchHomepage).not.toHaveBeenCalled();
+      expect(parserMock.parseEntries).not.toHaveBeenCalled();
+    });
+
+    it('should fetch and cache entries on cache miss', async () => {
+      cacheMock.get.mockResolvedValue(undefined);
+
+      const result = await service.getTopEntries();
+
+      expect(clientMock.fetchHomepage).toHaveBeenCalledTimes(1);
+      expect(parserMock.parseEntries).toHaveBeenCalledWith('<html></html>', 30);
+      expect(cacheMock.set).toHaveBeenCalledWith('hn:top:30', mockEntries);
+      expect(result).toEqual(mockEntries);
     });
   });
 });
