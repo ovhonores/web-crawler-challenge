@@ -58,13 +58,74 @@ $ npm run test:cov
 
 ## API
 
+Base URL: `http://localhost:3000`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/entries` | Get filtered entries from Hacker News |
+| `GET` | `/usage` | Get recent usage logs |
+| `GET` | `/api` | Swagger UI (interactive documentation) |
+
+### `GET /entries`
+
+Fetches the top 30 entries from Hacker News, applies the given filtering and
+sorting rules, and returns the result.
+
+**Query parameters:**
+
+| Parameter | Values | Default | Description |
+|-----------|--------|---------|-------------|
+| `words` | integer ≥ 0 | `5` | Number of words to compare |
+| `operator` | `gt`, `gte`, `lt`, `lte`, `eq` | `gt` | Comparison operator |
+| `sortBy` | `points`, `comments`, `number` | `comments` | Field to sort by |
+| `order` | `asc`, `desc` | `desc` | Sort direction |
+
+**Example request:**
+
+```bash
+curl "http://localhost:3000/entries?words=5&operator=gt&sortBy=comments&order=desc"
+```
+
+### GET /usage
+
+Returns the most recent usage logs from SQLite.
+
+Query parameters:
+
+Parameter	Default	Description
+limit	100	Maximum number of records to return
+Example request:
+
+```bash
+curl "http://localhost:3000/usage?limit=10"
+```
 
 
 ## Filtering rules
 
+The challenge defines two filtering strategies. Both operate on the same
+30 entries fetched from Hacker News.
 
+### Filter A — More than 5 words, sorted by comments
 
+- Keep entries whose title has **more than 5 words**.
+- Sort by **number of comments** (descending).
+
+```bash
+GET /entries?words=5&operator=gt&sortBy=comments&order=desc
+```
+### Filter B — 5 or fewer words, sorted by points
+Keep entries whose title has 5 or fewer words.
+
+Sort by points (descending).
+
+```bash
+GET /entries?words=5&operator=lte&sortBy=points&order=desc
+```
 ## Architecture
+
+The project follows a **feature-based** organization, aligned with NestJS
+conventions.
 
 ## Design decisions
 
@@ -277,28 +338,6 @@ Inspect logs with GET /usage.
 | `common` | Utility | Shared pure functions (e.g. `withTimeout`) | No |
 ---
 
-## Testing
-
-The project uses **Jest** for both unit and end-to-end tests.
-
-### Run tests
-
-```bash
-# Unit tests
-npm run test
-
-# Unit tests in watch mode
-npm run test:watch
-
-# Unit tests with coverage
-npm run test:cov
-
-# End-to-end tests
-npm run test:e2e
-```
-
-
-
 ### NestJS and TypeScript
 
 NestJS was selected because it provides a structured architecture for
@@ -334,6 +373,29 @@ Usage persistence is accessed through a repository interface. This keeps
 the business logic independent from the persistence implementation and
 allows the storage mechanism to be replaced in the future without changing
 the application logic.
+
+
+## Testing
+
+The project uses **Jest** for both unit and end-to-end tests.
+
+### Run tests
+
+```bash
+# Unit tests
+npm run test
+
+# Unit tests in watch mode
+npm run test:watch
+
+# Unit tests with coverage
+npm run test:cov
+
+# End-to-end tests
+npm run test:e2e
+```
+
+
 
 
 
