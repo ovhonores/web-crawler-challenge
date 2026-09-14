@@ -142,16 +142,16 @@ The `crawler/` module fetches and parses the top 30 entries from
 [Hacker News](https://news.ycombinator.com/).
 
 #### Responsibilities
+```
+| File                 | Responsibility 
+|-------------------   |----------------
+| `entry.parser.ts`    | Extract `number`, `title`, `points`, and `comments` from Hacker News HTML using Cheerio     
 
-| File | Responsibility |
-|------|----------------|
-| `entry.parser.ts` | Extract `number`, `title`, `points`, and `comments` from Hacker News HTML using Cheerio |
-
-| `hn.client.ts` | HTTP GET to HN (axios, 10s timeout, custom User-Agent) |
-| `hn.parser.ts` | Call  EntryParser |
-| `hn-selectors.ts` | Centralized CSS selectors |
-| `crawler.service.ts` | Orchestrate client + parser |
-
+| `hn.client.ts`       | HTTP GET to HN (axios, 10s timeout, custom User-Agent) 
+| `hn.parser.ts`       | Call  EntryParser 
+| `hn-selectors.ts`    | Centralized CSS selectors 
+| `crawler.service.ts` | Orchestrate client + parser 
+```
 #### Domain type
 
 ```typescript
@@ -169,14 +169,50 @@ export const HN_SELECTORS = {
 
 ### 5. `filters/` — Business logic
 
+To make the search more robust and maintainable, I decided to define specific filters based on the requirements. This approach allows us to implement the two required filters while keeping the filtering logic reusable and extensible for future filtering criteria.
+
+
 Applies the two filtering operations required by the assignment:
 - More than 5 words → ordered by comments.
 - Fewer than or equal to 5 words → ordered by points.
 
 **Dependencies:** `filters/` consumes `CrawlerService` (to get entries) and `UsageLogsService` (to log usage).
+#### Query parameters
+```
+| Parameter  | Values        | Default | Description |
+|----------- |---------------|---------|-------------|
+| `words`    | integer ≥ 0   | `5`     | Number of words to compare |
+| `operator` | `gt`, `gte`, `lt`, `lte`, `eq` | `gt` | Comparison operator |
+| `sortBy`   | `points`, `comments`, `number` | `comments` | Field to sort by |
+| `order`    | `asc`, `desc` | `desc`  | Sort direction |
+```
+#### Examples
 
----
+```bash
+# More than 5 words, sorted by comments desc (challenge filter A)
+curl "http://localhost:3000/entries?words=5&operator=gt&sortBy=comments&order=desc"
 
+# Fewer or equal to 5 words, sorted by points desc (challenge filter B)
+curl "http://localhost:3000/entries?words=5&operator=lte&sortBy=points&order=desc"
+
+# All entries, sorted by points ascending
+curl "http://localhost:3000/entries?words=0&operator=gte&sortBy=points&order=asc"
+```
+####  Word counting rule
+The challenge requires counting only spaced words and excluding symbols:
+
+"This is - a self-explained example" → 5 words
+
+Implementation in word-counter.ts:
+
+```typescript
+export const wordCount = (title: string): number =>
+  title
+    .split(/\s+/) // Split by one or more whitespace characters
+    .filter((token) => /[a-zA-Z0-9]/.test(token)) // Matches any letter (uppercase or lowercase) or digit
+    .length;
+
+```
 ### 6. `usage-logs/` — Persist API usage
 
 Persists every API interaction: timestamp, applied filter, and additional metadata.
@@ -190,7 +226,11 @@ Persists every API interaction: timestamp, applied filter, and additional metada
 - `timestamp` (required by the assignment)
 - `filter` (required by the assignment)
 - `entriesReturned`, `executionMs`, `userAgent`, `ip` (extra fields to track crawler behavior)
+##### Usage logging
+Every request logs the applied filter as a serialized string:
+words=5&operator=gt&sortBy=comments&order=desc
 
+Inspect logs with GET /usage.
 
 ---
 
