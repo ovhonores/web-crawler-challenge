@@ -23,7 +23,6 @@ export class CrawlerService {
   }
 
   async getTopEntries(): Promise<Entry[]> {
-    console.log('getTopEntries called, maxEntries:', this.maxEntries);
     try {
       const cached = await withTimeout(
         this.cache.get<Entry[]>(CACHE_KEY),
@@ -35,7 +34,6 @@ export class CrawlerService {
     } catch (error) {
       console.error('Failed to fetch from cache top entries:', error);
     }
-    console.log('Fetching top entries from Hacker News...');
     const html = await this.client.fetchHomepage();
     const entries = this.parser.parseEntries(html, this.maxEntries);
     try {
