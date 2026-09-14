@@ -120,6 +120,9 @@ describe('FiltersService', () => {
       filter: 'words=5&operator=gt&sortBy=comments&order=desc',
       entriesReturned: 5,
       executionMs: expect.any(Number) as number,
+      ip: ctx.ip,
+      userAgent: ctx.userAgent,
+      status: 'success',
     });
   });
 });
